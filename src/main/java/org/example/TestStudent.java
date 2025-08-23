@@ -24,6 +24,9 @@ public class TestStudent {
         // Test various methods
         testStudentMethods(studentList);
         
+        // Test enhanced sorting methods
+        testEnhancedSortingMethods(studentList);
+        
         System.out.println("Test completed successfully!");
     }
     
@@ -132,6 +135,123 @@ public class TestStudent {
         for (Student student : studentList) {
             System.out.println(student.getDisplayName() + " - Age: " + student.getAge() + 
                              ", Adult: " + student.isAdult() + ", Status: " + student.getAcademicStatus());
+        }
+    }
+    
+    /**
+     * Test enhanced sorting methods with different Comparator implementations
+     * @param studentList - ArrayList containing Student objects
+     */
+    public static void testEnhancedSortingMethods(ArrayList<Student> studentList) {
+        
+        System.out.println("\n=== Enhanced Sorting Methods ===");
+        
+        // Create a copy of the list for sorting tests
+        ArrayList<Student> testList = new ArrayList<>(studentList);
+        
+        // Test 1: Sort by age (ascending)
+        System.out.println("\n1. Students sorted by age (ascending):");
+        testList.sort((s1, s2) -> Integer.compare(s1.getAge(), s2.getAge()));
+        for (Student student : testList) {
+            System.out.println(student.getStudentId() + " - " + student.getFullName() + " (Age: " + student.getAge() + ")");
+        }
+        
+        // Test 2: Sort by age (descending)
+        System.out.println("\n2. Students sorted by age (descending):");
+        testList.sort((s1, s2) -> Integer.compare(s2.getAge(), s1.getAge()));
+        for (Student student : testList) {
+            System.out.println(student.getStudentId() + " - " + student.getFullName() + " (Age: " + student.getAge() + ")");
+        }
+        
+        // Test 3: Sort by last name, then first name
+        System.out.println("\n3. Students sorted by last name, then first name:");
+        testList.sort((s1, s2) -> {
+            int lastNameCompare = s1.getLastName().compareTo(s2.getLastName());
+            if (lastNameCompare != 0) {
+                return lastNameCompare;
+            }
+            return s1.getFirstName().compareTo(s2.getFirstName());
+        });
+        for (Student student : testList) {
+            System.out.println(student.getDisplayName());
+        }
+        
+        // Test 4: Sort by course, then by GPA (descending)
+        System.out.println("\n4. Students sorted by course, then by GPA (descending):");
+        testList.sort((s1, s2) -> {
+            int courseCompare = s1.getCourse().compareTo(s2.getCourse());
+            if (courseCompare != 0) {
+                return courseCompare;
+            }
+            return Double.compare(s2.getGpa(), s1.getGpa());
+        });
+        for (Student student : testList) {
+            System.out.println(student.getStudentId() + " - " + student.getFullName() + 
+                             " (" + student.getCourse() + ", GPA: " + student.getGpa() + ")");
+        }
+        
+        // Test 5: Sort by year of study, then by age
+        System.out.println("\n5. Students sorted by year of study, then by age:");
+        testList.sort((s1, s2) -> {
+            int yearCompare = Integer.compare(s1.getYearOfStudy(), s2.getYearOfStudy());
+            if (yearCompare != 0) {
+                return yearCompare;
+            }
+            return Integer.compare(s1.getAge(), s2.getAge());
+        });
+        for (Student student : testList) {
+            System.out.println(student.getStudentId() + " - " + student.getFullName() + 
+                             " (Year: " + student.getYearOfStudy() + ", Age: " + student.getAge() + ")");
+        }
+        
+        // Test 6: Sort by academic status (Honors first, then Good Standing, then Academic Warning)
+        System.out.println("\n6. Students sorted by academic status:");
+        testList.sort((s1, s2) -> {
+            String status1 = s1.getAcademicStatus();
+            String status2 = s2.getAcademicStatus();
+            
+            // Define priority: Honors > Good Standing > Academic Warning
+            int priority1 = getStatusPriority(status1);
+            int priority2 = getStatusPriority(status2);
+            
+            return Integer.compare(priority1, priority2);
+        });
+        for (Student student : testList) {
+            System.out.println(student.getStudentId() + " - " + student.getFullName() + 
+                             " (Status: " + student.getAcademicStatus() + ")");
+        }
+        
+        // Test 7: Sort by student ID (alphabetical)
+        System.out.println("\n7. Students sorted by student ID:");
+        testList.sort((s1, s2) -> s1.getStudentId().compareTo(s2.getStudentId()));
+        for (Student student : testList) {
+            System.out.println(student.getStudentId() + " - " + student.getDisplayName());
+        }
+        
+        // Test 8: Sort by email domain (extract domain and sort)
+        System.out.println("\n8. Students sorted by email domain:");
+        testList.sort((s1, s2) -> {
+            String domain1 = s1.getEmail().substring(s1.getEmail().indexOf('@') + 1);
+            String domain2 = s2.getEmail().substring(s2.getEmail().indexOf('@') + 1);
+            return domain1.compareTo(domain2);
+        });
+        for (Student student : testList) {
+            System.out.println(student.getStudentId() + " - " + student.getFullName() + 
+                             " (Email: " + student.getEmail() + ")");
+        }
+    }
+    
+    /**
+     * Helper method to assign priority to academic status
+     * @param status the academic status
+     * @return priority value (lower = higher priority)
+     */
+    private static int getStatusPriority(String status) {
+        switch (status.toLowerCase()) {
+            case "honors": return 1;
+            case "good standing": return 2;
+            case "academic warning": return 3;
+            default: return 4;
         }
     }
 }
