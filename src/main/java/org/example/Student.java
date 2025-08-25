@@ -9,6 +9,7 @@ import java.util.Objects;
  * - Inheritance (extends Person)
  * - Interfaces (Comparable, Serializable)
  * - Proper equals, hashCode, and toString methods
+ * - Comprehensive error handling and validation
  */
 public class Student extends Person implements Comparable<Student>, Serializable {
     
@@ -42,15 +43,28 @@ public class Student extends Person implements Comparable<Student>, Serializable
     }
     
     /**
-     * Parameterized constructor
+     * Parameterized constructor with comprehensive validation
      */
     public Student(String studentId, String firstName, String lastName, int age, 
                    String email, String course, int yearOfStudy, double gpa) {
         super(firstName, lastName, age, email);
-        this.studentId = studentId;
-        this.course = course;
+        
+        // Validate studentId
+        if (studentId == null || studentId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Student ID cannot be null or empty");
+        }
+        this.studentId = studentId.trim();
+        
+        // Validate course
+        if (course == null || course.trim().isEmpty()) {
+            throw new IllegalArgumentException("Course cannot be null or empty");
+        }
+        this.course = course.trim();
+        
+        // Validate year of study and GPA
         setYearOfStudy(yearOfStudy);
         setGpa(gpa);
+        
         totalStudents++;
     }
     
@@ -60,7 +74,10 @@ public class Student extends Person implements Comparable<Student>, Serializable
     }
     
     public void setStudentId(String studentId) {
-        this.studentId = studentId;
+        if (studentId == null || studentId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Student ID cannot be null or empty");
+        }
+        this.studentId = studentId.trim();
     }
     
     public String getCourse() {
@@ -68,7 +85,10 @@ public class Student extends Person implements Comparable<Student>, Serializable
     }
     
     public void setCourse(String course) {
-        this.course = course;
+        if (course == null || course.trim().isEmpty()) {
+            throw new IllegalArgumentException("Course cannot be null or empty");
+        }
+        this.course = course.trim();
     }
     
     public int getYearOfStudy() {
@@ -76,11 +96,12 @@ public class Student extends Person implements Comparable<Student>, Serializable
     }
     
     public void setYearOfStudy(int yearOfStudy) {
-        if (yearOfStudy >= MIN_YEAR && yearOfStudy <= MAX_YEAR) {
-            this.yearOfStudy = yearOfStudy;
-        } else {
-            throw new IllegalArgumentException("Year of study must be between " + MIN_YEAR + " and " + MAX_YEAR);
+        if (yearOfStudy < MIN_YEAR || yearOfStudy > MAX_YEAR) {
+            throw new IllegalArgumentException(
+                String.format("Year of study must be between %d and %d. Received: %d", 
+                            MIN_YEAR, MAX_YEAR, yearOfStudy));
         }
+        this.yearOfStudy = yearOfStudy;
     }
     
     public double getGpa() {
@@ -88,11 +109,12 @@ public class Student extends Person implements Comparable<Student>, Serializable
     }
     
     public void setGpa(double gpa) {
-        if (gpa >= MIN_GPA && gpa <= MAX_GPA) {
-            this.gpa = gpa;
-        } else {
-            throw new IllegalArgumentException("GPA must be between " + MIN_GPA + " and " + MAX_GPA);
+        if (gpa < MIN_GPA || gpa > MAX_GPA) {
+            throw new IllegalArgumentException(
+                String.format("GPA must be between %.1f and %.1f. Received: %.2f", 
+                            MIN_GPA, MAX_GPA, gpa));
         }
+        this.gpa = gpa;
     }
     
     // Static method
@@ -100,7 +122,7 @@ public class Student extends Person implements Comparable<Student>, Serializable
         return totalStudents;
     }
     
-    // Business logic methods
+    // Business logic methods with validation
     public boolean isHonorsStudent() {
         return gpa >= 3.5;
     }
@@ -111,15 +133,47 @@ public class Student extends Person implements Comparable<Student>, Serializable
         else return "Academic Warning";
     }
     
+    /**
+     * Validates if the student data is complete and valid
+     * @return true if all required fields are valid
+     * @throws IllegalStateException if validation fails
+     */
+    public boolean validateStudentData() {
+        try {
+            if (studentId == null || studentId.trim().isEmpty()) {
+                throw new IllegalStateException("Student ID is missing");
+            }
+            if (course == null || course.trim().isEmpty()) {
+                throw new IllegalStateException("Course is missing");
+            }
+            if (yearOfStudy < MIN_YEAR || yearOfStudy > MAX_YEAR) {
+                throw new IllegalStateException("Invalid year of study");
+            }
+            if (gpa < MIN_GPA || gpa > MAX_GPA) {
+                throw new IllegalStateException("Invalid GPA");
+            }
+            return true;
+        } catch (Exception e) {
+            throw new IllegalStateException("Student data validation failed: " + e.getMessage());
+        }
+    }
+    
     // Override methods from Person class
     @Override
     public String getDisplayName() {
-        return super.getDisplayName() + " (" + studentId + ")";
+        try {
+            return getFullName() + " (" + studentId + ")";
+        } catch (Exception e) {
+            return "Student [ID: " + studentId + "] - Error displaying name: " + e.getMessage();
+        }
     }
     
     // Comparable interface implementation
     @Override
     public int compareTo(Student other) {
+        if (other == null) {
+            throw new IllegalArgumentException("Cannot compare with null student");
+        }
         // Compare by GPA (descending order)
         return Double.compare(other.gpa, this.gpa);
     }
@@ -140,17 +194,21 @@ public class Student extends Person implements Comparable<Student>, Serializable
         return Objects.hash(super.hashCode(), studentId);
     }
     
-    // toString method
+    // toString method with error handling
     @Override
     public String toString() {
-        return "Student{" +
-                "studentId='" + studentId + '\'' +
-                ", course='" + course + '\'' +
-                ", yearOfStudy=" + yearOfStudy +
-                ", gpa=" + gpa +
-                ", firstName='" + getFirstName() + '\'' +
-                ", lastName='" + getLastName() + '\'' +
-                ", email='" + getEmail() + '\'' +
-                '}';
+        try {
+            return "Student{" +
+                    "studentId='" + studentId + '\'' +
+                    ", course='" + course + '\'' +
+                    ", yearOfStudy=" + yearOfStudy +
+                    ", gpa=" + gpa +
+                    ", firstName='" + getFirstName() + '\'' +
+                    ", lastName='" + getLastName() + '\'' +
+                    ", email='" + getEmail() + '\'' +
+                    '}';
+        } catch (Exception e) {
+            return "Student{studentId='" + studentId + "', error='toString failed: " + e.getMessage() + "'}";
+        }
     }
 }
